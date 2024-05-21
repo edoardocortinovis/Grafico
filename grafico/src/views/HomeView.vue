@@ -61,7 +61,6 @@ table {
 }
 th, td {
   border: 1px solid;
-  border : black;
   padding: 8px;
 }
 th {
