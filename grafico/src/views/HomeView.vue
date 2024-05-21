@@ -24,11 +24,13 @@
       </tbody>
     </table>
 
-    <!-- Card delle informazioni del comune -->
-    <div class="card" v-if="selectedCity">
-      <h2>{{ selectedCity }}</h2>
-      <!-- Altre informazioni del comune qui... -->
-      <button @click="closeCard">Chiudi</button>
+    <!-- Overlay e Card delle informazioni -->
+    <div class="overlay" v-if="selectedCell">
+      <div class="card">
+        <h2>Dettagli</h2>
+        <p>{{ selectedCell }}</p>
+        <button @click="closeCard">Chiudi</button>
+      </div>
     </div>
   </div>
 </template>
@@ -60,7 +62,7 @@ export default {
         }
       },
       series: [],
-      selectedCity: null
+      selectedCell: null
     };
   },
   mounted() {
@@ -104,16 +106,10 @@ export default {
       }
     },
     handleCellClick(value, key) {
-      if (key === 'Città') {
-        this.openCard(value);
-      }
-    },
-    openCard(city) {
-      this.selectedCity = city;
-      alert('Hai cliccato su: ' + city);
+      this.selectedCell = `${key}: ${value}`;
     },
     closeCard() {
-      this.selectedCity = null;
+      this.selectedCell = null;
     }
   }
 };
@@ -141,15 +137,24 @@ th {
 .text-right {
   text-align: right;
 }
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   background-color: #ffffff;
   padding: 20px;
-  border: 1px solid #ccc;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 80%;
+  max-height: 80%;
+  overflow-y: auto;
 }
 </style>
