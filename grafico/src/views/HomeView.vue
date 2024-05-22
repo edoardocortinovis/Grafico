@@ -1,35 +1,45 @@
 <template>
-  <div class="container">
-    <h1>TEMPERATURE</h1>
+  <div class="page-wrapper">
+    <div class="container">
+      <h1>TEMPERATURE</h1>
 
-    <!-- Inserimento del grafico -->
-    <div>
-      <apexchart type="line" height="350" :options="chartOptions" :series="series"></apexchart>
-    </div>
+      <!-- Inserimento del grafico -->
+      <div>
+        <apexchart type="line" height="350" :options="chartOptions" :series="series"></apexchart>
+      </div>
 
-    <!-- Tabella dei dati -->
-    <table v-if="jsonData.length">
-      <thead>
-        <tr>
-          <th v-for="key in headers" :key="key" :class="{ 'text-left': key === 'Anno' || key === 'Città', 'text-right': key !== 'Anno' && key !== 'Città' }">{{ key }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(row, index) in jsonData" :key="index">
-          <td v-for="(value, key) in row" :key="key" :class="{ 'text-left': key === 'Anno' || key === 'Città', 'text-right': key !== 'Anno' && key !== 'Città' }" @click="handleCellClick(value, key)">
-            <button v-if="key === 'Città'">{{ value }}</button>
-            <span v-else>{{ value }}</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <br>
 
-    <!-- Overlay e Card delle informazioni -->
-    <div class="overlay" v-if="selectedCell">
-      <div class="card">
-        <h2>Dettagli</h2>
-        <p>{{ selectedCell }}</p>
-        <button @click="closeCard">Chiudi</button>
+      <h1 aglin="center">Tabella</h1>
+      <div style="text-align: right;">
+        <input type="checkbox" style="margin-bottom: 20px;" v-model="filterHottest" @change="filterData">
+        <label for="filterHottest">Mostra solo le 10 città più calde</label>
+      </div>
+      
+      <!-- Tabella dei dati -->
+      <table v-if="jsonData.length">
+        <thead>
+          <tr>
+            <th v-for="key in headers" :key="key" :class="{ 'text-left': key === 'Anno' || key === 'Comune', 'text-right': key !== 'Anno' && key !== 'Comune' }">{{ key }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, index) in jsonData" :key="index">
+            <td v-for="key in headers" :key="key" :class="{ 'text-left': key === 'Anno' || key === 'Comune', 'text-right': key !== 'Anno' && key !== 'Comune' }" @click="handleCellClick(row[key], key)">
+              <button v-if="key === 'Comune'">{{ row[key] }}</button>
+              <span v-else>{{ row[key] }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Overlay e Card delle informazioni -->
+      <div class="overlay" v-if="selectedCell">
+        <div class="card">
+          <h2>Dettagli</h2>
+          <p>{{ selectedCell }}</p>
+          <button @click="closeCard">Chiudi</button>
+        </div>
       </div>
     </div>
   </div>
@@ -59,6 +69,16 @@ export default {
           title: {
             text: 'Media Temperatura Annuo'
           }
+        },
+        legend: {
+          position: 'bottom',
+          formatter: (seriesName, opts) => {
+            return this.series[opts.seriesIndex]?.name || seriesName;
+          }
+        },
+        tooltip: {
+          shared: true,
+          intersect: false
         }
       },
       series: [],
@@ -69,6 +89,7 @@ export default {
     this.loadExcelFile();
   },
   methods: {
+    
     async loadExcelFile() {
       try {
         const response = await fetch(new URL('@/assets/temperature.xlsx', import.meta.url));
@@ -81,6 +102,7 @@ export default {
 
         // Set the headers
         this.headers = json[0];
+        console.log("Headers:", this.headers); // Log for debugging
         json.shift(); // Remove the header row from data
 
         // Convert to object array
@@ -91,23 +113,27 @@ export default {
           });
           return obj;
         });
+        console.log("Json Data:", this.jsonData); // Log for debugging
 
         // Set x-axis categories for the chart
-        this.chartOptions.xaxis.categories = this.headers.slice(2); // Assuming first two headers are 'Anno' and 'Città'
+        this.chartOptions.xaxis.categories = this.jsonData.map(row => row['Comune']);
 
         // Generate series data for the chart
         this.series = this.jsonData.map(row => ({
-          name: row.Città,
+          name: row[this.headers[0]], // Ensure that 'Comune' is used as the name of the series
           data: this.headers.slice(2).map(year => row[year])
         }));
+        console.log("Series Data:", this.series); // Log for debugging
 
       } catch (error) {
         console.error('Errore durante il caricamento del file Excel:', error);
       }
     },
+
     handleCellClick(value, key) {
       this.selectedCell = `${key}: ${value}`;
     },
+
     closeCard() {
       this.selectedCell = null;
     }
@@ -116,27 +142,39 @@ export default {
 </script>
 
 <style scoped>
-.container {
-  margin: 0 5%;
+.page-wrapper {
+  margin: 0 5%; /* Spazio dal 5% sui lati */
 }
+
+.container {
+  border-radius: 10px; /* Bordi arrotondati */
+  padding: 20px; /* Spazio interno */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Ombra leggera */
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
 }
+
 th, td {
   border: 1px solid;
   padding: 8px;
 }
+
 th {
   background-color: #f2f2f2;
   font-weight: bold;
 }
+
 .text-left {
   text-align: left;
 }
+
 .text-right {
   text-align: right;
 }
+
 .overlay {
   position: fixed;
   top: 0;
@@ -148,13 +186,15 @@ th {
   justify-content: center;
   align-items: center;
 }
+
 .card {
   background-color: #ffffff;
   padding: 20px;
   border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 1);
   max-width: 80%;
   max-height: 80%;
   overflow-y: auto;
 }
 </style>
+
