@@ -8,13 +8,7 @@
         <apexchart type="line" height="350" :options="chartOptions" :series="series"></apexchart>
       </div>
 
-      <br>
-
-      <h1 aglin="center">Tabella</h1>
-      <div style="text-align: right;">
-        <input type="checkbox" style="margin-bottom: 20px;" v-model="filterHottest" @change="filterData">
-        <label for="filterHottest">Mostra solo le 10 città più calde</label>
-      </div>
+      
       
       <!-- Tabella dei dati -->
       <table v-if="jsonData.length">

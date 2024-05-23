@@ -8,6 +8,10 @@
         <apexchart type="line" height="350" :options="chartOptions" :series="series"></apexchart>
       </div>
 
+      <br>
+
+      <h1 aglin="center">Tabella</h1>
+
       <!-- Tabella dei dati -->
       <table v-if="jsonData.length">
         <thead>
@@ -33,6 +37,7 @@
           <button @click="closeCard">Chiudi</button>
         </div>
       </div>
+      
     </div>
   </div>
 </template>
